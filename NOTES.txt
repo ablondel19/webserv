@@ -1,0 +1,173 @@
+Programming with TCP/IP sockets;
+	
+__________________________________________________________________________________________________________________
+| 
+| 1) Create the socket
+| {
+| 	A socket is created with the "socket" syscall;
+| 		
+| 		- int server_fd = socket(domain, type, protocol);
+| 			
+| 			-domain is the address family like AF_INET (IP), AF_INET (IPv6), and so on...
+| 			
+| 			-type is the service properties like SOCK_STREAM (VCS), SOCK_RAW (direct IP service), and so on...
+| 			
+| 			-protocol are the handling rules for the socket operations, TCP in that case.
+| 	
+| 	TCP/IP sockets will use the IP address famaily 'AF_INET' and Virtual Circuit Service (VCS) 'SOCK_STREAM'.
+| 	
+| 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+| 		
+| 		Example;
+| 		
+| 		#include <sys/socket.h>
+| 		
+| 		[...]
+| 		int server_fd;
+| 		
+| 		if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+| 		{
+| 			perror(“cannot create socket”);
+| 			return -1;
+| 		}
+| 		[...]
+| 	
+| 	
+| }
+
+__________________________________________________________________________________________________________________
+| 
+| 2) Identify the socket
+| {
+| 	A socket is identified then we attempt to "bind" it to a port number;
+| 		
+| 		- int bind(int socket, const struct sockaddr_in *address, socklen_t address_len);
+| 
+| 			-socket is the server_fd created in the previous example.
+| 
+| 			-sockaddr is a generic struct to allow the OS to read from the address family
+| 
+| 			-address_len is the sizeof the address.
+| 
+| 		struct sockaddr_in 
+| 		{ 
+| 		    __uint8_t         sin_len; 
+| 		    sa_family_t       sin_family; 
+| 		    in_port_t         sin_port; 
+| 		    struct in_addr    sin_addr; 
+| 		    char              sin_zero[8]; 
+| 		};
+| 		
+| 		- We need to fill out the struct 
+| 			-sin_len	: sizeof(struct sockaddr_in)
+| 			-sin_family	: in our case AF_INET 
+| 			-sin_port	: the port number (8080 localhost)
+| 			-sin_addr	: the address of the socket (IP of the host machine)
+| 		
+| 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+| 		
+| 		Example;
+| 						
+| 		[...]
+| 		struct sockaddr_in address;
+| 		const int PORT = 8080; //Where the clients can reach at
+| 		
+| 		//htonl converts a long integer (e.g. address) to a network representation  
+| 		//htons converts a short integer (e.g. port) to a network representation 
+| 		
+| 		memset((char *)&address, 0, sizeof(address));
+| 		address.sin_family = AF_INET;
+| 		address.sin_addr.s_addr = htonl(INADDR_ANY);
+| 		address.sin_port = htons(PORT);
+| 		
+| 		if (bind(server_fd,(struct sockaddr *)&address,sizeof(address)) < 0) 
+| 		{ 
+| 		    perror(“bind failed”); 
+| 		    return -1; 
+| 		}
+| 		[...]
+| 	
+| 	
+| }
+
+__________________________________________________________________________________________________________________
+| 
+| 3) Wait for incoming connection to the server
+| {
+| 	Once the socket is opened, bound and prepared to accept connections
+| 	we can use the 'listen' syscall;
+| 		
+| 		- int listen(int socket, int backlog);
+| 		
+| 			-socket is the opened and bounded socket ready to listen.
+| 		
+| 			-backlog is the nbr of connections that can be queued before refusing new ones.
+| 
+| 	Because the original socket is only for listening we need the 'accept' syscall;
+| 	
+| 		- int accept(int socket, struct sockaddr *restrict address, socklen_t *restrict address_len);
+| 
+| 			-socket is the opened and bounded socket ready to listen.
+| 
+| 			-address is the struct filled with the client info who's trying to connect.
+| 			
+| 			-address_len is the sizeof the address.
+| 	
+| 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+| 		
+| 		Example;
+| 						
+| 		[...]
+| 		int new_socket;
+| 		
+| 		if (listen(server_fd, 3) < 0) 
+| 		{ 
+| 		    perror(“In listen”); 
+| 		    exit(EXIT_FAILURE); 
+| 		}
+| 		if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0)
+| 		{
+| 		    perror("In accept");            
+| 		    exit(EXIT_FAILURE);        
+| 		}
+| 		[...]
+| 	
+| 	
+| }
+
+__________________________________________________________________________________________________________________
+| 
+| 4) Send and receive messages
+| {
+| 	If every syscall went well and all informations are valid on the two ends we can use
+| 	read() and write() to communicate data. The work on the server is what is tranmitted 
+| 	with the write syscall.
+| 
+| 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+| 		
+| 		Example;
+| 						
+| 		[...]
+| 		char buffer[1024] {0};
+| 		
+| 		int valread = read(new_socket , buffer, 1024); 
+| 		printf(“%s\n”, buffer);
+| 		if (valread < 0)
+| 		{ 
+| 		    printf("No bytes are there to read");
+| 		}
+| 		char *hello = "Hello from the server";//IMPORTANT! WE WILL GET TO IT
+| 		write(new_socket, hello, strlen(hello));
+| 		[...]
+| 	
+| 
+| }
+
+__________________________________________________________________________________________________________________
+| 
+| 5) Close the socket
+| {
+| 	After the communication is done we just close the socket like a file.
+| 	close(new_socket);
+| }
+
