@@ -64,7 +64,6 @@ int main(void)
 		char buffer[1024] = {0};
 		ret = read(new_socket, buffer, 1024);
 		buffer[ret] = 0;
-		//std::cout << "-Attempting to send: " << buffer << "-" << std::endl;
 		write(new_socket, hello, strlen(hello));
 		std::cout << "MESSAGE SUCCESSFULY SENT!" << std::endl;
 		close(new_socket);
