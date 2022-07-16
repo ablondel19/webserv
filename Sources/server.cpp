@@ -31,7 +31,7 @@ int main(void)
 	int new_socket = 0;
 	int ret = 0;
 	int addrlen = sizeof(address);
-	char *hello = "KALASH! MOOLAH! KICHTA! KEKRA! De Mesnilmontant a Cambronne j'suis en roue arierre dans l'boul de ta daronne!!";
+	char *hello = "KALASH! MOOLAH! KICHTA! KEKRA!";
 
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
