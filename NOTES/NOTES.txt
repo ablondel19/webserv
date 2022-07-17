@@ -1,3 +1,9 @@
+https://cdn.intra.42.fr/pdf/pdf/53685/fr.subject.pdf
+https://copyconstruct.medium.com/the-method-to-epolls-madness-d9d2d6378642
+https://copyconstruct.medium.com/nonblocking-i-o-99948ad7c957
+https://kaleid-liner.github.io/blog/2019/06/02/epoll-web-server.html
+
+
 Programming with TCP/IP sockets;
 	
 __________________________________________________________________________________________________________________
