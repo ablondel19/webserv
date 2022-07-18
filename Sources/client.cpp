@@ -21,14 +21,13 @@
 #include <sys/time.h>
 #include <sys/socket.h>
 #include <fcntl.h>
-#define PORT 8080
+#define PORT 8000
 
-int main(void)
+int main(int ac, const char **av)
 {
 	int client_socket = 0;
 	int ret = 0;
 	struct sockaddr_in serv_addr;
-	char *hello = "Kalashé chargé!!! Cuisine du kekra!!!";
 	char buffer[1024] = {0};
 	if ((client_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
@@ -48,9 +47,9 @@ int main(void)
         printf("\nConnection Failed \n");
         return -1;
     }
-    send(client_socket , hello , strlen(hello) , 0 );
+    send(client_socket , av[1] , strlen(av[1]) , 0 );
     printf("MESSAGE SUCCESSFULY SENT\n");
     ret = read( client_socket , buffer, 1024);
-    printf("%s\n",buffer );
+    printf("%s\n", buffer);
     return 0;
 }

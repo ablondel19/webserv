@@ -15,16 +15,16 @@
 
 class create_socket
 {
-private:
-    int _server_fd; // File descriptor for the socket
-    int _domain; // Family of the socket address
-    int _type; // Type of service for the socket
-    int _protocol; // Specify the available operations for the socket
-    struct sockaddr_in _address; // Generic container that allows the OS to read infos
+    private:
+        int _server_fd; // File descriptor for the socket
+        int _domain; // Family of the socket address
+        int _type; // Type of service for the socket
+        int _protocol; // Specify the available operations for the socket
+        struct sockaddr_in _address; // Generic container that allows the OS to read infos
 
-public:
-    create_socket(int domain, int type, int protocol);
-    ~create_socket() {};
+    public:
+        create_socket(int domain, int type, int protocol);
+        ~create_socket() {close(_server_fd);};
 };
 
 /*
