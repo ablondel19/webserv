@@ -10,12 +10,29 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #define SERVER_PORT 8080
+#define BACKLOG 32
+/*
+TO DO LIST
+	creer une classe selector avec un constructeur pour prendre en compte la config
+	Ajouter une fonction pour gerer les erreurs
+	modifier la partie SEND pour write depuis un fichier vers le navigateur
+	proteger les retours de fonctions contre les crashes
 
+probablement besoin de:
+
+	- IP en format binaire
+	- server name en format texte
+	- ports
+	- protocol
+	- nombre de connections actives
+	- location des fichers statiques html/css/java etc [root] [index]
+
+*/
 int main (int ac, char **av)
 {
 	(void)ac;
 	(void)av;
-	int    current_sd, rc, flags, on = 1;
+	int    current_sd, rc, /*flags,*/ on = 1;
 	int    listen_sd, max_sd, new_sd;
 	int    desc_ready, end_server = false;
 	int    close_conn;
@@ -36,18 +53,18 @@ int main (int ac, char **av)
 		close(listen_sd);
 		exit(1);
 	}
-	flags = fcntl(listen_sd, F_GETFL, 0); /* Set socket to be nonblocking. all sockets will inherit that state from the listening socket */
-	fcntl(listen_sd, F_SETFL, flags | O_NONBLOCK);
+	//flags = fcntl(listen_sd, F_GETFL, 0); /* Set socket to be nonblocking. all sockets will inherit that state from the listening socket */
+	rc = fcntl(listen_sd, F_SETFL, fcntl(listen_sd, F_GETFL, 0) | O_NONBLOCK);
 	if (rc < 0)
 	{
 		//perror("fcntl() failed");
 		close(listen_sd);
 		exit(1);
 	}
-	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-	addr.sin_port = htons(SERVER_PORT);
+	memset(&addr, 0, sizeof(addr)); /* Set and define the current address struucture */
+	addr.sin_family = AF_INET; // IP TYPE
+	addr.sin_addr.s_addr = inet_addr("127.0.0.1"); // DOMAIN
+	addr.sin_port = htons(SERVER_PORT); // PORT
 	rc = bind(listen_sd, (struct sockaddr *)&addr, sizeof(addr)); /* Bind the socket */
 	if (rc < 0)
 	{
@@ -55,7 +72,7 @@ int main (int ac, char **av)
 		close(listen_sd);
 		exit(1);
 	}
-	rc = listen(listen_sd, 32); /* Set the listen back log to 32 pending connections */
+	rc = listen(listen_sd, BACKLOG); /* Set the listen back log to 32 pending connections */
 	if (rc < 0)
 	{
 		//perror("listen() failed");
@@ -72,7 +89,7 @@ int main (int ac, char **av)
 	while (end_server == false)
 	{	
 		memcpy(&working_set, &master_set, sizeof(master_set)); /* Copy the master fd_set over to the working fd_set */
-		rc = select(max_sd + 1, &working_set, NULL, NULL, 0); /* Select the first READY file descriptor from the working fd_set */
+		rc = select(max_sd + 1, &working_set, NULL, NULL, &timeout); /* Select the first READY file descriptor from the working fd_set */
 		if (rc < 0) /* Check to see if the select call failed */
 		{
 			//perror("  select() failed");
@@ -81,6 +98,7 @@ int main (int ac, char **av)
 		/* Check to see if the 3 minute time out expired. */
 		if (rc == 0)
 		{
+			//ADD REDIRECT TO ERROR PAGE//
 			printf("select() timed out. End program.\n");
 			exit(1);
 		}
@@ -133,7 +151,7 @@ int main (int ac, char **av)
 						rc = write(current_sd, hello, strlen(hello));
 						if (rc < 0)
 						{
-							//perror("write failed:");
+							//ADD REDIRECT TO ERROR PAGE//
 							break ;
 						}
 					}
