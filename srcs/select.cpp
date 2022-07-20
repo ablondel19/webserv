@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   select.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ablondel <ablondel@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/07/20 13:40:46 by ablondel          #+#    #+#             */
+/*   Updated: 2022/07/20 14:04:52 by ablondel         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
@@ -11,6 +23,7 @@
 #include <fcntl.h>
 #define SERVER_PORT 8080
 #define BACKLOG 32
+#include "webserv.hpp"
 /*
 TO DO LIST
 	creer une classe selector avec un constructeur pour prendre en compte la config
@@ -32,7 +45,7 @@ int main (int ac, char **av)
 {
 	(void)ac;
 	(void)av;
-	int    current_sd, rc, /*flags,*/ on = 1;
+	int    current_sd, rc, on = 1;
 	int    listen_sd, max_sd, new_sd;
 	int    desc_ready, end_server = false;
 	int    close_conn;
