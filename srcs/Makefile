@@ -1,5 +1,5 @@
 all: 
-	c++ -Wall -Wextra -Werror -std=c++98 select.cpp -o webserv
+	c++ -Wall -Wextra -Werror -std=c++98 main.cpp -o webserv
 
 clean:
 	rm webserv

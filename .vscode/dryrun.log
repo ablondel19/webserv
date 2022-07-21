@@ -1,0 +1,6 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/ablondel/Desktop/webserv'
+make: Leaving directory `/Users/ablondel/Desktop/webserv'
+ 
+make: *** No targets specified and no makefile found.  Stop.
+
