@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   webserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ablondel <ablondel@student.s19.be>         +#+  +:+       +#+        */
+/*   By: ablondel <ablondel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/20 13:40:21 by ablondel@st       #+#    #+#             */
-/*   Updated: 2022/07/21 17:26:57 by ablondel         ###   ########.fr       */
+/*   Updated: 2022/07/22 12:50:35 by ablondel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,33 +25,87 @@
 #include <fcntl.h>
 #include <string>
 #include <iostream>
+#include <vector>
 #define BACKLOG 255
+#define NBPORTS 3
 #define HANDLE_ERROR(x) std::cout << "[" << x << "]" << std::endl;
+
+class client
+{
+	private:
+		struct sockaddr_in addr;
+		struct timeval timeout;
+		fd_set master_set;
+		fd_set working_set;
+		unsigned char buffer[30000];
+		int current_sd;
+		int listen_sd;
+		int max_sd;
+		int new_sd;
+		int desc_ready;
+		int end_server;
+		int rc;
+		int on;
+	public:
+		client(/* args */) {};
+		~client() {};
+};
+
 class webserv
 {
+	public:
+		std::vector<int> sockets;
+		std::vector<int> ports;
+		std::vector<struct sockaddr_in> addrs;
+
     private:
-        struct sockaddr_in addr;
-        struct timeval timeout;
-        fd_set master_set;
-        fd_set working_set;
-        unsigned char buffer[30000];
-        int current_sd;
-        int listen_sd;
-        int max_sd;
-        int new_sd;
-        int desc_ready;
-        int end_server;
-        int close_conn;
-        int rc;
-        int on;
+        struct sockaddr_in addr; //c
+        struct timeval timeout; //s
+        fd_set master_set;//c
+        fd_set working_set;//c
+        unsigned char buffer[30000];//c
+        int current_sd;//c
+        int listen_sd;//c
+        int max_sd;//c
+        int new_sd;//c
+        int desc_ready;//s
+        int end_server;//s
+        int close_conn;//s
+        int rc;//s
+        int on;//s
     
     public:
         webserv(int port);
+		webserv() {};
         ~webserv();
+		int	set_server(std::vector<int> &sockets, std::vector<int> &ports, std::vector<struct sockaddr_in> &addrs)
+		{
+			for (size_t i = 0; i < NBPORTS; i++)
+			{
+				if ((sockets[i] = socket(AF_INET, SOCK_STREAM, 0) == -1))
+					return -1;
+				if ((setsockopt(sockets[i], SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) == -1))
+					return -2;
+				if ((fcntl(sockets[i], F_SETFL, O_NONBLOCK) == -1))
+					return -3;
+				timeout.tv_sec  = 3 * 60;
+				timeout.tv_usec = 0;
+				memset(&addrs, 0, sizeof(addrs));
+				addrs[i].sin_family = AF_INET;
+				addrs[i].sin_addr.s_addr = inet_addr("127.0.0.1");
+				addrs[i].sin_port = htons(ports[i]);
+				if ((bind(sockets[i], (struct sockaddr *)&addrs[i], sizeof(addrs[i]))) == -1)
+					return -4;
+				if ((listen(sockets[i], BACKLOG) == -1))
+					return -5;
+			}
+			return 0;
+		}
 };
 
 webserv::webserv(int port)
 {
+	//SET SERVER////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     on = 1;
     end_server = false;
 	const char *hello = "HTTP/1.1 200\r\n\r\n<p>Hello World!</p>";
@@ -70,29 +124,29 @@ webserv::webserv(int port)
         close(listen_sd);
         return ;
     }
-    memset(&addr, 0, sizeof(addr));
+	timeout.tv_sec  = 3 * 60;
+	timeout.tv_usec = 0;
+	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	addr.sin_port = htons(port);
-    if ((rc = bind(listen_sd, (struct sockaddr *)&addr, sizeof(addr)) == -1))
-    {
-        close(listen_sd);
-        return ;
-    }
-    if ((rc = listen(listen_sd, BACKLOG) == -1))
-    {
-        close(listen_sd);
-        return ;
-    }
-    FD_ZERO(&master_set);
+	if ((rc = bind(listen_sd, (struct sockaddr *)&addr, sizeof(addr)) == -1))
+	{
+		close(listen_sd);
+		return ;
+	}
+	if ((rc = listen(listen_sd, BACKLOG) == -1))
+	{
+		close(listen_sd);
+		return ;
+	}
+	FD_ZERO(&master_set);
 	FD_ZERO(&working_set);
 	FD_SET(listen_sd, &master_set);
 	max_sd = listen_sd;
-	timeout.tv_sec  = 3 * 60;
-	timeout.tv_usec = 0;
+	//RUN SERVER////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
     while (end_server == false)
 	{
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 		memcpy(&working_set, &master_set, sizeof(master_set)); /* Copy the master fd_set over to the working fd_set */
 		rc = select(max_sd + 1, &working_set, NULL, NULL, &timeout); /* Select the first READY I/O file descriptor from the working fd_set */
 		if (rc < 0) /* Check to see if the select call failed */
@@ -175,11 +229,12 @@ webserv::webserv(int port)
 		if (FD_ISSET(current_sd, &master_set))
 			close(current_sd);
 	}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
 webserv::~webserv()
 {
+
 }
 
 #endif

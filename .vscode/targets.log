@@ -10,7 +10,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 make: *** No rule to make target `all'.  Stop.
 
 
-# Make data base, printed on Fri Jul 22 11:07:52 2022
+# Make data base, printed on Fri Jul 22 11:56:31 2022
 
 # Variables
 
@@ -39,7 +39,7 @@ MAKEFILE_LIST :=
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/zz/zyxvpxvq6csfxvn_n0009pl0002dmr/T/vscode-ipc-d3496a2f-f30e-4737-9c22-b01b0203469a.sock
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/zz/zyxvpxvq6csfxvn_n0009pl0002dmr/T/vscode-ipc-729d4153-4d20-4ba3-8217-693cd712482e.sock
 # environment
 VSCODE_CWD = /
 # environment
@@ -51,7 +51,7 @@ ELECTRON_RUN_AS_NODE = 1
 # default
 .FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.ReC51lsiRO/Listeners
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.IiXQ5JJ6FF/Listeners
 # automatic
 %F = $(notdir $%)
 # environment
@@ -115,7 +115,7 @@ XPC_SERVICE_NAME = com.microsoft.VSCode.2072
 # automatic
 +F = $(notdir $+)
 # environment
-__CF_USER_TEXT_ENCODING = 0x13698:0x0:0x0
+__CF_USER_TEXT_ENCODING = 0x13698:0x0:0x2
 # default
 MAKEFILES := 
 # automatic
@@ -133,7 +133,7 @@ MAKELEVEL := 0
 # environment
 LANG = C
 # environment
-VSCODE_PID = 70630
+VSCODE_PID = 76745
 # variable set hash-table stats:
 # Load=60/1024=6%, Rehash=0, Collisions=1/81=1%
 
@@ -217,6 +217,6 @@ GNUmakefile:
 # strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
 # strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
 
-# Finished Make data base on Fri Jul 22 11:07:52 2022
+# Finished Make data base on Fri Jul 22 11:56:31 2022
 
  
