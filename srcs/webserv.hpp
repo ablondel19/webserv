@@ -6,7 +6,7 @@
 /*   By: ablondel <ablondel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/20 13:40:21 by ablondel@st       #+#    #+#             */
-/*   Updated: 2022/07/22 12:50:35 by ablondel         ###   ########.fr       */
+/*   Updated: 2022/07/22 14:43:13 by ablondel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@
 #define BACKLOG 255
 #define NBPORTS 3
 #define HANDLE_ERROR(x) std::cout << "[" << x << "]" << std::endl;
-
+/*
 class client
 {
 	private:
@@ -47,18 +47,13 @@ class client
 		int rc;
 		int on;
 	public:
-		client(/* args */) {};
+		client() {};
 		~client() {};
 };
-
+*/
 class webserv
 {
-	public:
-		std::vector<int> sockets;
-		std::vector<int> ports;
-		std::vector<struct sockaddr_in> addrs;
-
-    private:
+   private:
         struct sockaddr_in addr; //c
         struct timeval timeout; //s
         fd_set master_set;//c
@@ -78,29 +73,7 @@ class webserv
         webserv(int port);
 		webserv() {};
         ~webserv();
-		int	set_server(std::vector<int> &sockets, std::vector<int> &ports, std::vector<struct sockaddr_in> &addrs)
-		{
-			for (size_t i = 0; i < NBPORTS; i++)
-			{
-				if ((sockets[i] = socket(AF_INET, SOCK_STREAM, 0) == -1))
-					return -1;
-				if ((setsockopt(sockets[i], SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) == -1))
-					return -2;
-				if ((fcntl(sockets[i], F_SETFL, O_NONBLOCK) == -1))
-					return -3;
-				timeout.tv_sec  = 3 * 60;
-				timeout.tv_usec = 0;
-				memset(&addrs, 0, sizeof(addrs));
-				addrs[i].sin_family = AF_INET;
-				addrs[i].sin_addr.s_addr = inet_addr("127.0.0.1");
-				addrs[i].sin_port = htons(ports[i]);
-				if ((bind(sockets[i], (struct sockaddr *)&addrs[i], sizeof(addrs[i]))) == -1)
-					return -4;
-				if ((listen(sockets[i], BACKLOG) == -1))
-					return -5;
-			}
-			return 0;
-		}
+		
 };
 
 webserv::webserv(int port)
