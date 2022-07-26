@@ -6,7 +6,7 @@
 /*   By: ablondel <ablondel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/21 17:51:49 by ablondel          #+#    #+#             */
-/*   Updated: 2022/07/26 12:21:22 by ablondel         ###   ########.fr       */
+/*   Updated: 2022/07/26 14:50:21 by ablondel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,18 @@ int     set_server(std::vector<int> &sockets, std::vector<int> &ports, std::vect
 	return 0;
 }
 
+void    parse_request(std::string &request)
+{
+    size_t pos = 0;
+    std::string res;
+    while ((pos = request.find('\n')) != std::string::npos)
+    {
+        res = request.substr(0, pos);
+        request.erase(0, pos + 1);
+        //std::cout << "|" << res << "|" << std::endl;
+    }
+}
+
 int     run_server(std::vector<int> &sockets, std::vector<int> &ports, std::vector<struct sockaddr_in> &addrs)
 {
     std::vector<int> clients;
@@ -94,10 +106,9 @@ int     run_server(std::vector<int> &sockets, std::vector<int> &ports, std::vect
     int close_conn;
 	int rc;
     int max;
-    /////////////////////////////////////////DATA
+    /////////////////////////////////////DATA
     std::string ok = "HTTP/1.1 200\r\n\r\n";
     std::string index;
-    
     std::ifstream ifs;
     ifs.open("index.html", std::fstream::in);
     while(ifs.read(buffer, sizeof(buffer)))
@@ -143,6 +154,8 @@ int     run_server(std::vector<int> &sockets, std::vector<int> &ports, std::vect
             rd = recv(*it, buffer, sizeof(buffer), 0);
             buffer[rd] = 0;
             std::string request(buffer);
+            parse_request(request);
+            request.clear();
 			printf("\x1B[32m[[DATA RECEIVED]]\x1B[0m\n\n%s", request.c_str());
 			if (rd < 0)
 			{
