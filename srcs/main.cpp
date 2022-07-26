@@ -6,14 +6,13 @@
 /*   By: ablondel <ablondel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/21 17:51:49 by ablondel          #+#    #+#             */
-/*   Updated: 2022/07/26 14:50:21 by ablondel         ###   ########.fr       */
+/*   Updated: 2022/07/26 17:33:24 by ablondel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#define GREEN 		"\e[92m"
-#define RED			"\033[31m"
-#define RESET   	"\033[0m"
-
+#define GREEN "\e[92m"
+#define RED	"\033[31m"
+#define RESET "\033[0m"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
@@ -89,11 +88,13 @@ void    parse_request(std::string &request)
 {
     size_t pos = 0;
     std::string res;
+    if (!request.length())
+        return ;
     while ((pos = request.find('\n')) != std::string::npos)
     {
         res = request.substr(0, pos);
         request.erase(0, pos + 1);
-        //std::cout << "|" << res << "|" << std::endl;
+        std::cout << "|" << res << "|" << std::endl;
     }
 }
 
@@ -154,9 +155,10 @@ int     run_server(std::vector<int> &sockets, std::vector<int> &ports, std::vect
             rd = recv(*it, buffer, sizeof(buffer), 0);
             buffer[rd] = 0;
             std::string request(buffer);
+            if (request.length() > 0)
+			    printf("\x1B[32m[[DATA RECEIVED]]\x1B[0m\n\n%s", request.c_str());
             parse_request(request);
             request.clear();
-			printf("\x1B[32m[[DATA RECEIVED]]\x1B[0m\n\n%s", request.c_str());
 			if (rd < 0)
 			{
 				break ;
