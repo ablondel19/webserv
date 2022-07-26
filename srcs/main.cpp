@@ -6,7 +6,7 @@
 /*   By: ablondel <ablondel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/21 17:51:49 by ablondel          #+#    #+#             */
-/*   Updated: 2022/07/23 15:51:16 by ablondel         ###   ########.fr       */
+/*   Updated: 2022/07/26 12:21:22 by ablondel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,8 @@
 #include <fcntl.h>
 #include <string>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <vector>
 #define BACKLOG 255
 #define NBPORTS 3
@@ -87,27 +89,32 @@ int     run_server(std::vector<int> &sockets, std::vector<int> &ports, std::vect
 {
     std::vector<int> clients;
     struct timeval timeout;
-	unsigned char buffer[30000];
+	char buffer[1024];
 	int end_server;
     int close_conn;
 	int rc;
     int max;
-    const char *hello = "HTTP/1.1 200\r\n\r\n<p>Hello World!</p>";
+    /////////////////////////////////////////DATA
+    std::string ok = "HTTP/1.1 200\r\n\r\n";
+    std::string index;
     
+    std::ifstream ifs;
+    ifs.open("index.html", std::fstream::in);
+    while(ifs.read(buffer, sizeof(buffer)))
+        index.append(buffer, sizeof(buffer));
+    index.append(buffer, ifs.gcount());
+    ok.append(index);
+    /////////////////////////////////////////
+    end_server = false;
     rc = set_server(sockets, ports, addrs);
     if (rc < 0)
         return -1;
-    end_server = false;
 	fd_set current_sockets;
 	fd_set read_sockets;
     FD_ZERO(&current_sockets);
     max = sockets.back();
-    for (size_t i = 0; i < sockets.size(); i++)
-    {
-        FD_SET(sockets[i], &current_sockets);
-        //log(GREEN, sockets[i], ": is connected to >> ");
-        //log(GREEN, ports[i], "\n");
-    }
+    for (std::vector<int>::iterator it = sockets.begin(); it != sockets.end(); it++)
+        FD_SET(*it, &current_sockets);
     while (end_server == false)
     {
         FD_ZERO(&read_sockets);
@@ -117,27 +124,26 @@ int     run_server(std::vector<int> &sockets, std::vector<int> &ports, std::vect
         rc = select(max + 1, &read_sockets, NULL, NULL, &timeout);
         if (rc < 0)
         {
-            //log(RED, rc, ": select() failed\n");
             close_all(sockets);
             end_server = true;
-            exit(1);
+            break ;
         }
         if (rc == 0)
         {
-            //log(RED, rc, ": select timed out after 3 min\n");
             close_all(sockets);
             end_server = true;
-            exit(1);
+            break ;
         }
         int rd = 0;
         int rw = 0;
-        for (size_t i = 0; i != clients.size(); i++)
+        close_conn = false;
+        for (std::vector<int>::iterator it = clients.begin(); it != clients.end(); it++)
         {
-            close_conn = false;
 			bzero(&buffer, sizeof(buffer)); /* Clear the buffer */
-			rd = read(clients[i], buffer, 30000); /* Read data on this connection */
-			//DEBUG TO SEE THE HEADER REQUEST//
-			//printf("\x1B[32m[[DATA RECEIVED]]\x1B[0m\n\n%s", buffer);
+            rd = recv(*it, buffer, sizeof(buffer), 0);
+            buffer[rd] = 0;
+            std::string request(buffer);
+			printf("\x1B[32m[[DATA RECEIVED]]\x1B[0m\n\n%s", request.c_str());
 			if (rd < 0)
 			{
 				break ;
@@ -146,7 +152,7 @@ int     run_server(std::vector<int> &sockets, std::vector<int> &ports, std::vect
 			{
 				break ;
 			}
-			rw = write(clients[i], hello, strlen(hello)); /* Echo the data to the client */
+            rw = send(*it, ok.c_str(), ok.size(), 0);
 			if (rw < 0)
 			{
 				break ;
@@ -155,25 +161,23 @@ int     run_server(std::vector<int> &sockets, std::vector<int> &ports, std::vect
 			{
 				break ;
 			}
-            close(clients[i]);
-			FD_CLR(clients[i], &current_sockets);
+            close(*it);
+			FD_CLR(*it, &current_sockets);
+            clients.erase(it);
         }
-        for (size_t i = 0; i != ports.size(); i++)
+        for (size_t i = 0; i < max; i++)
         {
             if (FD_ISSET(sockets[i], &read_sockets))
             {
                 socklen_t len = sizeof(sockaddr[i]);
                 int connection = accept(sockets[i], (struct sockaddr*)&addrs[i], &len);
-                //log(GREEN, connection, ": connection accepted\n");
                 if (connection < 0)
                 {
-                    //log(RED, connection, ": failed to accept incoming connection\n");
                     close_all(sockets);
                     end_server = true;
                 }
                 FD_SET(connection, &current_sockets);
                 clients.push_back(connection);
-                //log(GREEN, connection, ": added to fd_set\n");
                 if (connection > max)
                     max = connection;
                 break ;
